@@ -1,0 +1,1 @@
+In some case, we need to use non-linear scale to respond skewness towards large values. Like this chart, one line is much bigger than the bulk of the data. Thus we need to use log or square scale to make the small dataset visuable.

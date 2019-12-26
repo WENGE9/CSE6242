@@ -1,0 +1,24 @@
+1. Ease to develop for developers.
+Python: Python is more ease than D3 because its easy grammar.
+Tableau: Tableau is the most ease because it don't require	coding ability.
+D3: D3 requires background knowledge of HTML,CSS and javascript thus is not ease.
+
+2. Ease to maintain the visualization for developers.
+Python: Not ease as Tableau, maybe need to import some other libraries.
+Tableau: Tableau is ease for changing, just need to change some parameter.
+D3: When requirement changes D3 need to change its code to fulfill requirement so it's not ease.
+
+3. Usability of visualization developed for end users.
+Python: Python's visualization is limited to the library.
+Tableau: Tableau is able to create interactive chart which make it easy for end users to find what they want.
+D3: D3 also could create interactive chart and could be designed as whatever users want.
+
+4. Scalability of visualization to “large” datasets.
+Python: Python is good at analyzing big data not large datasets.
+Tableau: Able to handle large datasets, depends on how much data you request.
+D3: D3 cannot process large datasets, it needs some pre-processing.
+
+5. System requirements to run the visualization.
+Python: Python is compatible for many systems.
+Tableau: Tableau is highly compatible which uses desktop, server and online mode.
+D3: D3's needs newer version of the browser.

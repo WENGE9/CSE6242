@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<script type="application/javascript" src="../lib/d3.v5.min.js"></script>
+    <script type="application/javascript" src="../lib/d3-dsv.min.js"></script>
+    <script type="application/javascript" src="../lib/d3-fetch.min.js"></script>
+    <script type="application/javascript" src="../lib/d3-scale-chromatic.v1.min.js"></script>
+    <script type="application/javascript" src="../lib/topojson.v2.min.js"></script>
+    <script type="application/javascript" src="../lib/d3-tip.min.js"></script>
+<head>
+    <meta charset="utf-8">
+    <title>choropleth</title>
+    
+    
+</head>
+        
+    <style type="text/css">
+      .d3-tip{
+        line-height: 1;
+        padding: 5px;
+        background: rgb(1,1,1);
+        color: white;
+      }
+    </style>
+<body>
+
+    </svg>
+
+
+    <script type="text/javascript">
+    var height = 500;
+    var padding = 100;
+    var size = 20;
+    var width = 1000;
+    var svg = d3.select('body').append('svg').attr('width', width).attr('height', height);
+    var colors = ["#fff7f3","#fde0dd","#fcc5c0","#fa9fb5","#f768a1","#dd3497","#ae017e","#7a0177","#49006a"] 
+    Promise.all([
+         d3.csv("state-earthquakes.csv"),
+         d3.json("states-10m.json")]).then(function (d){
+         mapData=d[1] 
+        earthquakeData=d[0] 
+        //console.log(earthquakeData)
+    var index={}
+    var RegionPerState={}
+    //console.log(mapData.objects.states.geometries)
+        for (i of earthquakeData){
+          RegionPerState[i.States]=i["Region"]
+          index[i.States]=parseInt(i["Total Earthquakes"])
+        }
+    //console.log(RegionPerState)
+        mapData=topojson.feature(mapData,mapData.objects.states)
+        mapData.features=mapData.features.map(d=>{
+            var num = index[d.properties.name]
+            d.properties.num=num
+            return d;
+        })
+        //console.log(mapData.features)
+    var tooltip = d3.tip()
+                    .attr("class", "d3-tip")
+                    .offset([-8, 0])
+                    .html(function(d){ 
+                      Data = d.properties
+                      return "State: "+Data.name+" <br /> "+"Region: "+RegionPerState[Data.name]+" <br /> "+"Earthquakes: "+Data.num+" "});
+        svg.call(tooltip);
+        max=d3.max(mapData.features,function(d){return d.properties.num})
+    var colorScale = d3.scaleQuantile().domain([1,Math.log(max)]).range(colors)
+    var stateMap = d3.geoAlbersUsa().scale(800).translate([400,300])
+    var path = d3.geoPath().projection(stateMap)
+        svg.selectAll("path")
+           .data(mapData.features)
+           .enter().append("path")
+           .attr("fill",function(d){return colorScale(Math.log(d.properties.num))})
+           .attr("d",path)
+           .on("mouseover",tooltip.show)
+           .on("mouseout",tooltip.hide)
+           .attr("stroke","black")
+           .attr("transform", "translate(0,-20)")
+
+           
+        svg.append("text")
+           .attr("x", width*0.65)
+           .attr("y", height/4 - size)
+           .text("Earthquake Frequncy")
+           .style("font-size", "15px")
+
+        svg.selectAll("rect")
+            .data(colors)
+            .enter()
+            .append("rect")
+            .attr("x", width*0.7)
+            .attr("y", function(d,i){ return i*(size+5) + height/4}) 
+            .attr("width", size)
+            .attr("height", size)
+            .style("fill", function(d){ return d})
+
+        svg.selectAll("labels")
+            .data(colors)
+            .enter()
+            .append("text")
+            .attr("x", width*0.7 + size*1.5)
+            .attr("y", function(d,i){ return i*(size+5) + height/4 + size - 5}) 
+            .text(function(d,i){ return Math.round(Math.pow(max,(i-1)/8))})
+            .attr("text-anchor", "left")
+            .style("alignment-baseline", "middle")
+})
+
+    </script>
+
+</body>
+</html>

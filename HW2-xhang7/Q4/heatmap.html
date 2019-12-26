@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+
+<title>Visualizing Earthquake Counts by State 2010-2015 (M3+)</title>
+<style type="text/css">
+body {
+  font: 10px sans-serif;
+}
+
+.select {
+	position: absolute;
+	z-index: 10;
+
+.label {
+  font-weight: bold;
+}
+
+.tile {
+  shape-rendering: crispEdges;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+</style>
+	<script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+<script>
+var height = 500;
+var padding = 100;
+var step = 40;
+var width = 800;
+var yLabels = ["2010","2011","2012","2013","2014","2015"];
+var colors = ['#f7fcfd','#e0ecf4','#bfd3e6','#9ebcda','#8c96c6','#8c6bb1','#88419d','#810f7c','#4d004b']
+var Category = ['0 to 9','10 to 99','100 to 499','500 or above']
+
+
+d3.csv("earthquakes.csv").then(function(d){
+
+	var buckets = {}
+	for(i=0;i<d.length;i++){
+		//console.log(d[i].States)
+		var rows = d[i];
+		var key = rows.Category
+		var values = [];
+		for(j=0;j<yLabels.length;j++){
+			values.push({'States':rows['States'], 'Year':yLabels[j], 'Values':parseInt(rows[yLabels[j]])});
+		}
+		if(!(key in buckets)){
+			buckets[key] = [];
+		}
+		buckets[key] = buckets[key].concat(values);	
+	}
+	console.log(buckets)
+	var svg = d3.select('body').append('svg').attr('width', width).attr('height', height);
+	var xScale0 = d3.scaleBand().domain(buckets[Category[0]].map(d=>d.States)).range([0,width - padding*2.5 ])
+	var xAxis = svg.append("g")
+      			.attr("transform",`translate(${padding},${height - padding})`)
+      			.call(d3.axisBottom(xScale0))
+      			.selectAll("text")
+      			.attr('transform','rotate(-15)')
+	var yScale = d3.scaleBand().domain(buckets[Category[0]].map(d=>d.Year)).range([0,height-padding*2])
+	var yAxis = svg.append("g")
+      			.attr("transform",`translate(${padding},${padding})`)
+      			.call(d3.axisLeft(yScale));
+
+	var maxValue0 = d3.max(buckets[Category[0]],function(d) {
+				return d.Values
+				});
+	var colorScale0 = d3.scaleQuantile()
+                        .range(colors)
+                        .domain([0, maxValue0]);
+
+    var heatmap0 = svg.selectAll('.heatmap')
+                      .data(buckets[Category[0]])
+                      .enter()
+                      .append('rect')
+                      .attr('class', 'heatmap')
+                      .attr('x', function(d) {return xScale0(d.States)})
+           			  .attr('y', function(d) {return yScale(d.Year)})
+           			  .attr('fill',function(d, i) {
+           			  	return colorScale0(d.Values);
+           			  })
+  
+           			  .attr('width', (width - padding*2.5)/10-2).attr('height',(height-padding*2)/6-2)
+           			  .attr("transform",`translate(${padding+1},${padding})`)
+           			  .on("mouseover",function(d) {
+           			 			svg.append('text')
+           			 			   .attr("class","shows")
+		  						   .attr('x', width/2.2)
+								   .attr('y', 2*step)
+								   .attr('font-size',"15px")
+								   .text(d.States+" "+d.Year+":"+d.Values)
+   						})
+           			  .on("mouseout",function(d){
+           			 	  d3.selectAll('.shows').text("");
+           			  })
+         
+	var legends0 = svg.selectAll('.legend')
+                  	  .data(colors)
+			          .enter()
+			          .append('g')
+			          .attr('class', 'legend')
+			          .attr('transform', function(d, i) {
+			          	return 'translate(' + (padding + i * step + 1) + ',' + (height - 50) + ')';
+			          })
+				    
+		svg.append('text')
+       	   .attr('x', padding)
+           .attr('y', height - 60)
+           .attr('font-size',"12px")
+           .text('count');
+	
+		legends0.append('rect')
+                .attr('width', step)
+                .attr('height', 20)
+                .attr('fill', function(d, i) {
+		    		return colors[i];
+        		})
+                .attr('x', 0)
+                .attr('y', 0);
+
+		legends0.append('text')
+                .text(function(d,i){return Math.ceil(maxValue0/9*i)})
+                .attr('x', 0)
+                .attr('y', 35);
+
+//option
+		svg.append('text')
+		   .attr('x', padding +30)
+		   .attr('y', padding - 25)
+		   .attr('font-size',"15px")
+		   .text('range of')
+
+	var select = d3.select('body')
+			.append('select')
+			.attr('class','select')
+        	.style('top', (padding/2 + 20)+'px')
+			.style('left', (padding*2)+'px')
+       	 	.on('change', function() {
+		       	d3.select('body')
+		    	  .selectAll('g')
+		    	   .remove()
+		    	d3.select('body')
+		    	  .selectAll('.heatmap')
+		    	  .remove()
+		    	d3.select('body')
+		    	  .selectAll('.legend')
+		    	  .remove()
+   	var selectValue = d3.select('select').property('value');
+    var yScale = d3.scaleBand().domain(buckets[selectValue].map(d=>d.Year)).range([0,height-padding*2])
+	var yAxis = svg.append("g")
+      		       .attr("transform",`translate(${padding},${padding})`)
+      		       .call(d3.axisLeft(yScale));		
+	var xScale = d3.scaleBand().domain(buckets[selectValue].map(d=>d.States)).range([0,width - padding*2.5 ])
+	var xAxis = svg.append("g")
+      			   .attr("transform",`translate(${padding},${height - padding})`)
+      			   .call(d3.axisBottom(xScale))
+      			   .selectAll("text")
+      			   .attr('transform','rotate(-15)')
+   	var maxValue = d3.max(buckets[selectValue],function(d) {
+   		return d.Values
+		});
+	var colorScale = d3.scaleQuantile()
+                       .range(colors)
+                       .domain([0, maxValue]);
+        	console.log(maxValue)
+
+  	var heatmap = svg.selectAll('.heatmap')
+                     .data(buckets[selectValue])
+                     .enter()
+                     .append('rect')
+                     .attr('class', 'heatmap')
+                     .attr('x', function(d) {return xScale(d.States)})
+           			 .attr('y', function(d) {return yScale(d.Year)})
+           			 .attr('fill',function(d, i) {
+           			 return colorScale(d.Values);
+           			 })
+        			 .attr('width',((width - padding * 2.5)/(buckets[selectValue].map(d=>d.States).length/6))-2)
+           			 .attr('height',((height - padding * 2)/6)-2)
+           			 .attr("transform",`translate(${padding+1},${padding})`)
+           			 .on("mouseover",function(d) {
+           			 			svg.append('text')
+           			 			   .attr("class","show")
+		  						   .attr('x', width/2.2)
+								   .attr('y', 2*step)
+								   .attr('font-size',"15px")
+								   .text(d.States+" "+d.Year+":"+d.Values)
+
+           			 })
+           			 .on("mouseout",function(d){
+           			 	d3.selectAll('.show').text("");
+           			 })
+
+    var legends = svg.selectAll('.legend')
+                     .data(colors)
+			         .enter()
+			         .append('g')
+			         .attr('class', 'legend')
+			         .attr('transform', function(d, i) {
+				     return 'translate(' + (padding + i * step + 1) + ',' + (height - 50) + ')';
+			     	 });
+
+
+		legends.append('rect')
+               .attr('width', step)
+               .attr('height', 20)
+               .attr('fill', function(d, i) {
+		       return colors[i];
+        	   })
+               .attr('x', 0)
+               .attr('y', 0);
+
+		legends.append('text')
+               .text(function(d,i) { return Math.ceil(maxValue/9*i);})
+               .attr('x', 0)
+               .attr('y', 35);
+	})	
+	var options = select
+		.selectAll('option')
+		.data(Category)
+		.enter()
+		.append('option')
+		.text(function (d) { return d; })
+
+	svg.append("text")
+        .attr("x", width/2)             
+        .attr("y", step)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "20px") 
+        .text("Visualizing Earthquake Counts by State 2010-2015 (M3+)");
+
+
+	})
+</script>
+</body>
+</html>

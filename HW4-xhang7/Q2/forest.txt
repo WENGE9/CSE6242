@@ -1,0 +1,8 @@
+1.What is the main reason to use a random forest versus a decision tree? (<= 50 words)
+Random forest builds multiple decision trees and merges them together to get a more accurate and stable prediction.
+
+2.How long did your random forest take to run? (in seconds)
+It took 84 seconds to run.
+
+3.What accuracy (to two decimal places, xx.xx%) were you able to obtain?
+The accuracy was 90.84%.
